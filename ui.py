@@ -9,15 +9,67 @@
 
 
 from PyQt5 import QtCore, QtGui, QtWidgets
+from PyQt5.QtCore import QRect
+from PyQt5.QtGui import QPixmap
+from PyQt5.QtWidgets import QGraphicsView, QGraphicsScene, QLabel, QWidget
+import pyautogui
+import sys
 
 
-mode, cell_size, alive, speed = '', '', '', '' # Defining global variables
+def scale(old):
+    new = int(window_width * (old / 800) * 0.8)
+    return new
+
+
+def font_scale(old_f):
+    new_f = int(old_f * (window_height / 450) * 0.9)
+    return new_f
+
+
+mode, cell_size, alive, speed = '', '', '', ''  # Defining global variables
+resolution = pyautogui.size()
+window_width = int(resolution[0] * 0.8)
+# window_width = 800
+window_height = int(resolution[1] * 0.8)
+# window_height = 450
+
+canvas_width = window_width
+canvas_height = window_height - scale(30)
+
+
+class Graphic(QGraphicsView):
+    def __init__(self):
+        super().__init__()
+        self.scene = QGraphicsScene()
+        self.setSceneRect(scale(0), scale(30), canvas_width, canvas_height)
+
+
+class Image(QLabel, QWidget):
+    def __init__(self, pos, parent=None):
+        QWidget.__init__(self, parent)
+        self.image_wrapper = QLabel(pos)
+        self.image_wrapper.setObjectName(u"image_wrapper")
+        self.image_wrapper.setGeometry(QRect(scale(0), scale(30), canvas_width, canvas_height))
+        self.image_wrapper.setPixmap(QPixmap(u"background.png"))
+        self.image_wrapper.setScaledContents(True)
+
+    def event(self, e):
+        if e.type() == QtCore.QEvent.KeyPress:
+            print("Вы нажали клавишу на клавиатуре")
+            print("Код:", e.key(), ", текст:", e.text())
+        elif e.type() == QtCore.QEvent.Close:
+            print("Вы закрыли окно")
+        elif e.type() == QtCore.QEvent.MouseButtonPress:
+            print("Совершен клик мышью. Координаты:", e.x(), e.y())
+
+        # Событие отправляется дальше
+        return QWidget.event(self, e)
 
 
 class Ui_MainWindow(object):
     def setupUi(self, MainWindow):
         MainWindow.setObjectName("MainWindow")
-        MainWindow.resize(800, 600)
+        MainWindow.resize(window_width, window_height)
         sizePolicy = QtWidgets.QSizePolicy(QtWidgets.QSizePolicy.Fixed, QtWidgets.QSizePolicy.Fixed)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(0)
@@ -26,69 +78,69 @@ class Ui_MainWindow(object):
         self.centralwidget = QtWidgets.QWidget(MainWindow)
         self.centralwidget.setObjectName("centralwidget")
         self.mode_label = QtWidgets.QLabel(self.centralwidget)
-        self.mode_label.setGeometry(QtCore.QRect(10, 5, 56, 31))
+        self.mode_label.setGeometry(QtCore.QRect(scale(6), scale(8), scale(33), scale(13)))
         font = QtGui.QFont()
-        font.setFamily("Calibri")
-        font.setPointSize(14)
+        font.setFamily("Segoe UI")
+        font.setPointSize(font_scale(8))
         self.mode_label.setFont(font)
         self.mode_label.setObjectName("mode_label")
         self.game_mode = QtWidgets.QComboBox(self.centralwidget)
-        self.game_mode.setGeometry(QtCore.QRect(70, 10, 95, 21))
+        self.game_mode.setGeometry(QtCore.QRect(scale(45), scale(5), scale(67 + 10), scale(20)))
         font = QtGui.QFont()
-        font.setFamily("Calibri")
-        font.setPointSize(12)
+        font.setFamily("Segoe UI")
+        font.setPointSize(font_scale(7))
         self.game_mode.setFont(font)
         self.game_mode.setObjectName("game_mode")
         self.game_mode.addItem("")
         self.game_mode.addItem("")
         self.speed_label = QtWidgets.QLabel(self.centralwidget)
-        self.speed_label.setGeometry(QtCore.QRect(440, 10, 61, 21))
+        self.speed_label.setGeometry(QtCore.QRect(scale(340), scale(8), scale(35), scale(13)))
         font = QtGui.QFont()
-        font.setFamily("Calibri")
-        font.setPointSize(14)
+        font.setFamily("Segoe UI")
+        font.setPointSize(font_scale(8))
         self.speed_label.setFont(font)
         self.speed_label.setObjectName("speed_label")
         self.speed_control = QtWidgets.QSlider(self.centralwidget)
-        self.speed_control.setGeometry(QtCore.QRect(500, 10, 121, 22))
+        self.speed_control.setGeometry(QtCore.QRect(scale(382), scale(5 + 3), scale(127), scale(20 - 4)))
         self.speed_control.setProperty("value", 20)
         self.speed_control.setOrientation(QtCore.Qt.Horizontal)
         self.speed_control.setObjectName("speed_control")
         self.start_button = QtWidgets.QPushButton(self.centralwidget)
-        self.start_button.setGeometry(QtCore.QRect(720, 9, 75, 23))
+        self.start_button.setGeometry(QtCore.QRect(scale(730 * 1.27), scale(5), scale(65), scale(20)))
         font = QtGui.QFont()
         font.setFamily("Calibri")
-        font.setPointSize(12)
+        font.setPointSize(font_scale(8))
         self.start_button.setFont(font)
         self.start_button.setObjectName("start_button")
-        self.graphicsView = QtWidgets.QGraphicsView(self.centralwidget)
-        self.graphicsView.setGeometry(QtCore.QRect(0, 40, 800, 560))
-        self.graphicsView.setObjectName("graphicsView")
+
+        self.image_wrapper = Image(self.centralwidget)
+
         self.cell_size_label = QtWidgets.QLabel(self.centralwidget)
-        self.cell_size_label.setGeometry(QtCore.QRect(180, 10, 66, 23))
+        self.cell_size_label.setGeometry(QtCore.QRect(scale(130), scale(8), scale(51), scale(13)))
         font = QtGui.QFont()
-        font.setFamily("Calibri")
-        font.setPointSize(14)
+        font.setFamily("Segoe UI")
+        font.setPointSize(font_scale(8))
         self.cell_size_label.setFont(font)
         self.cell_size_label.setObjectName("cell_size_label")
         self.cell_size_control = QtWidgets.QSpinBox(self.centralwidget)
-        self.cell_size_control.setGeometry(QtCore.QRect(250, 10, 42, 21))
+        self.cell_size_control.setGeometry(QtCore.QRect(scale(180), scale(5), scale(36), scale(20)))
         font = QtGui.QFont()
-        font.setFamily("Calibri")
-        font.setPointSize(12)
+        font.setFamily("Segoe UI")
+        font.setPointSize(font_scale(7))
         self.cell_size_control.setFont(font)
         self.cell_size_control.setObjectName("cell_size_control")
         self.alive_label = QtWidgets.QLabel(self.centralwidget)
-        self.alive_label.setGeometry(QtCore.QRect(310, 10, 64, 23))
+        self.alive_label.setGeometry(QtCore.QRect(scale(236), scale(8), scale(42), scale(13)))
         font = QtGui.QFont()
-        font.setFamily("Calibri")
-        font.setPointSize(14)
+        font.setFamily("Segoe UI")
+        font.setPointSize(font_scale(8))
         self.alive_label.setFont(font)
         self.alive_label.setObjectName("alive_label")
         self.alive_control = QtWidgets.QSpinBox(self.centralwidget)
-        self.alive_control.setGeometry(QtCore.QRect(375, 10, 42, 21))
+        self.alive_control.setGeometry(QtCore.QRect(scale(282), scale(5), scale(36), scale(20)))
         font = QtGui.QFont()
-        font.setFamily("Calibri")
-        font.setPointSize(12)
+        font.setFamily("Segoe UI")
+        font.setPointSize(font_scale(7))
         self.alive_control.setFont(font)
         self.alive_control.setObjectName("alive_control")
         MainWindow.setCentralWidget(self.centralwidget)
@@ -109,7 +161,20 @@ class Ui_MainWindow(object):
         self.cell_size_label.setText(_translate("MainWindow", "Cell Size:"))
         self.alive_label.setText(_translate("MainWindow", "Alive %: "))
 
+    ''' def event(self, e):
+            if e.type() == QtCore.QEvent.KeyPress:
+                print("Вы нажали клавишу на клавиатуре")
+                print("Код:", e.key(), ", текст:", e.text())
+            elif e.type() == QtCore.QEvent.Close:
+                print("Вы закрыли окно")
+            elif e.type() == QtCore.QEvent.MouseButtonPress:
+                print("Совершен клик мышью. Координаты:", e.x(), e.y())
+    
+            # Событие отправляется дальше
+            return Ui_MainWindow.event(self, e)'''
+
     def pressed(self):
+        self.image_wrapper.setPixmap(QPixmap(u"Untitled.png"))
         n = self.start_button.text()
         if n == 'Start':
             global mode, cell_size, alive, speed
@@ -129,11 +194,12 @@ class Ui_MainWindow(object):
 
 
 if __name__ == "__main__":
-    import sys
-
+    print(canvas_width, canvas_height)
     app = QtWidgets.QApplication(sys.argv)
     MainWindow = QtWidgets.QMainWindow()
     ui = Ui_MainWindow()
     ui.setupUi(MainWindow)
     MainWindow.show()
     sys.exit(app.exec_())
+
+# TODO: Add program logic
